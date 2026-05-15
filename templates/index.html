@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FakeShield AI — Fake News Detector</title>
+  <style>
+    @import url('data:text/css,');
+  </style>
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- Animated background -->
+<div id="particles"></div>
+
+<div class="page-wrapper">
+
+  <!-- ── Header ────────────────────────────────────────────── -->
+  <header>
+    <div class="logo-ring">🛡</div>
+    <h1>FakeShield AI</h1>
+    <p>AI-powered fake news detection using NLP &amp; Machine Learning</p>
+    <div class="badge-row">
+      <div class="badge">TF-IDF &nbsp;<span>NLP</span></div>
+      <div class="badge">Logistic Regression &nbsp;<span>ML</span></div>
+      <div class="badge">NLTK &nbsp;<span>Preprocessing</span></div>
+      {% if metadata.accuracy %}
+      <div class="badge">Accuracy &nbsp;<span>{{ "%.1f"|format(metadata.accuracy * 100) }}%</span></div>
+      {% endif %}
+    </div>
+  </header>
+
+  <!-- ── No-model warning ───────────────────────────────────── -->
+  {% if not model_loaded %}
+  <div class="no-model-banner">
+    ⚠ Model not trained yet. Run <code>python dataset/create_dataset.py</code> then
+    <code>python train_model.py</code> to train the model before using the detector.
+  </div>
+  {% endif %}
+
+  <!-- ── Input card ─────────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Paste News Article or Headline</div>
+    <textarea
+      id="newsInput"
+      placeholder="Paste a news article, headline, or any text you want to verify…&#10;&#10;Tip: Press Ctrl+Enter to analyse quickly."
+      autocomplete="off"
+      spellcheck="false"
+    ></textarea>
+
+    <div class="input-footer">
+      <!-- Examples dropdown -->
+      <div class="examples-wrap">
+        <button class="btn btn-ghost" id="examplesBtn" type="button">
+          📋 Quick Examples ▾
+        </button>
+        <div class="examples-dropdown" id="examplesDD"></div>
+      </div>
+
+      <button class="btn-clear" id="clearBtn" type="button">✕ Clear</button>
+
+      <span class="char-count" id="charCount">0 chars</span>
+
+      <!-- Analyse button -->
+      <button class="btn btn-primary" id="analyseBtn" type="button">
+        <div class="spinner" id="spinner"></div>
+        <span id="btnText">🔍 Analyse</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Error card ─────────────────────────────────────────── -->
+  <div class="card" id="errorCard">
+    <div class="error-inner">
+      <span style="font-size:20px">⚠</span>
+      <span id="errorMsg">An error occurred.</span>
+    </div>
+  </div>
+
+  <!-- ── Result card ────────────────────────────────────────── -->
+  <div class="card" id="resultCard">
+
+    <!-- Verdict -->
+    <div class="verdict">
+      <div class="verdict-icon" id="verdictIcon"></div>
+      <div>
+        <div class="verdict-label" id="verdictLabel"></div>
+        <div class="verdict-sub"  id="verdictSub"></div>
+      </div>
+    </div>
+
+    <!-- Confidence bar -->
+    <div class="conf-label">
+      <span id="confLabel">Confidence Score</span>
+      <strong id="confValue">—</strong>
+    </div>
+    <div class="conf-track">
+      <div class="conf-fill" id="confFill" style="width:0%"></div>
+    </div>
+
+    <!-- Real vs Fake probability -->
+    <div class="prob-row">
+      <div class="prob-item real">
+        <div class="prob-title">Real probability</div>
+        <div class="prob-value" id="realPct">—</div>
+      </div>
+      <div class="prob-item fake">
+        <div class="prob-title">Fake probability</div>
+        <div class="prob-value" id="fakePct">—</div>
+      </div>
+    </div>
+
+    <!-- Meta info -->
+    <div class="meta-row">
+      <div class="meta-item">Model: <span id="metaModel">—</span></div>
+      <div class="meta-item">Words: <span id="metaWords">—</span></div>
+      <div class="meta-item">Model accuracy: <span id="metaAccuracy">—</span></div>
+    </div>
+  </div>
+
+  <!-- ── Key word indicators ────────────────────────────────── -->
+  <div class="card" id="keywordsSection">
+    <div class="card-title">Key Linguistic Indicators</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:10px;">
+      Words that most strongly influenced this prediction (
+      <span style="color:var(--fake)">■ fake</span> /
+      <span style="color:var(--real)">■ real</span>
+      indicators):
+    </p>
+    <div class="kw-grid" id="kwGrid"></div>
+  </div>
+
+  <!-- ── Model stats ─────────────────────────────────────────── -->
+  {% if metadata %}
+  <div class="card">
+    <div class="card-title">Model Performance</div>
+    <div class="stats-grid">
+      {% if metadata.accuracy %}
+      <div class="stat-box">
+        <div class="stat-value">{{ "%.1f"|format(metadata.accuracy * 100) }}%</div>
+        <div class="stat-label">Best Accuracy</div>
+      </div>
+      {% endif %}
+      {% if metadata.vocab_size %}
+      <div class="stat-box">
+        <div class="stat-value">{{ "{:,}".format(metadata.vocab_size) }}</div>
+        <div class="stat-label">TF-IDF Features</div>
+      </div>
+      {% endif %}
+      {% if metadata.train_samples %}
+      <div class="stat-box">
+        <div class="stat-value">{{ "{:,}".format(metadata.train_samples) }}</div>
+        <div class="stat-label">Training Samples</div>
+      </div>
+      {% endif %}
+      {% if metadata.best_model %}
+      <div class="stat-box">
+        <div class="stat-value" style="font-size:14px;padding-top:4px">{{ metadata.best_model }}</div>
+        <div class="stat-label">Best Model</div>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if metadata.all_models %}
+    <div style="margin-top:20px">
+      <div class="card-title" style="margin-bottom:10px">All Models</div>
+      {% for name, info in metadata.all_models.items() %}
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:13px;">
+        <span style="color:var(--muted);min-width:180px">{{ name }}</span>
+        <div style="flex:1;height:8px;background:rgba(255,255,255,0.06);border-radius:999px;overflow:hidden">
+          <div style="height:100%;width:{{ "%.1f"|format(info.accuracy * 100) }}%;
+               background:linear-gradient(90deg,#667eea,#764ba2);border-radius:999px"></div>
+        </div>
+        <span style="color:var(--primary);font-weight:600;min-width:48px;text-align:right">
+          {{ "%.1f"|format(info.accuracy * 100) }}%
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- ── Visualisations ─────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-title">Training Visualisations</div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
+      Click any chart to enlarge. Charts are generated after running
+      <code style="background:rgba(255,255,255,0.06);padding:1px 6px;border-radius:4px">python train_model.py</code>.
+    </p>
+    <div class="charts-grid">
+      <div class="chart-item">
+        <img src="/static/images/model_comparison.png"
+             alt="Model Accuracy Comparison"
+             onerror="this.closest('.chart-item').style.display='none'" />
+        <div class="chart-caption">Model Accuracy Comparison</div>
+      </div>
+      <div class="chart-item">
+        <img src="/static/images/confusion_matrix.png"
+             alt="Confusion Matrix"
+             onerror="this.closest('.chart-item').style.display='none'" />
+        <div class="chart-caption">Confusion Matrix (best model)</div>
+      </div>
+      <div class="chart-item">
+        <img src="/static/images/roc_curves.png"
+             alt="ROC Curves"
+             onerror="this.closest('.chart-item').style.display='none'" />
+        <div class="chart-caption">ROC Curves — All Models</div>
+      </div>
+      <div class="chart-item">
+        <img src="/static/images/top_features.png"
+             alt="Top Predictive Words"
+             onerror="this.closest('.chart-item').style.display='none'" />
+        <div class="chart-caption">Top Predictive Words</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Footer ─────────────────────────────────────────────── -->
+  <footer>
+    <p>FakeShield AI &mdash; Fake News Detector &nbsp;|&nbsp;
+       Built with Python, scikit-learn, NLTK &amp; Flask</p>
+    <p style="margin-top:6px;font-size:12px">
+      ⚠ For educational purposes. Always verify news with primary sources.
+    </p>
+  </footer>
+
+</div><!-- .page-wrapper -->
+
+<!-- ── Lightbox ───────────────────────────────────────────────── -->
+<div id="lightbox">
+  <button id="closeLightbox" class="close-btn" aria-label="Close">✕</button>
+  <img id="lightboxImg" src="" alt="Chart enlarged view" />
+</div>
+
+<script src="/static/js/main.js"></script>
+</body>
+</html>

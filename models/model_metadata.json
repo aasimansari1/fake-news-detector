@@ -1,0 +1,25 @@
+{
+  "best_model": "Passive Aggressive",
+  "accuracy": 0.907,
+  "all_models": {
+    "Logistic Regression": {
+      "accuracy": 0.8605
+    },
+    "Naive Bayes": {
+      "accuracy": 0.8837
+    },
+    "Random Forest": {
+      "accuracy": 0.8372
+    },
+    "Passive Aggressive": {
+      "accuracy": 0.907
+    }
+  },
+  "vocab_size": 2755,
+  "train_samples": 172,
+  "test_samples": 43,
+  "label_counts": {
+    "FAKE": 110,
+    "REAL": 105
+  }
+}
