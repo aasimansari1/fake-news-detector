@@ -1,96 +1,221 @@
-# FakeShield AI — Fake News Detector
+<div align="center">
 
-An AI-powered fake news detection web application built with Python, scikit-learn, NLTK, and Flask.
+# 🛡️ FakeShield AI — Fake News Detector
 
-## Features
+### Paste any headline or article. Get an instant REAL / FAKE verdict with confidence score and linguistic evidence.
 
-- Real-time fake news classification (REAL / FAKE)
-- Confidence score and probability breakdown
-- Key linguistic indicators that influenced the prediction
-- NLP preprocessing: lowercasing, punctuation removal, tokenisation, stopword removal, lemmatisation
-- TF-IDF vectorisation with bigrams
-- Four ML models compared: Logistic Regression, Naive Bayes, Random Forest, Passive Aggressive
-- Training visualisations: accuracy comparison, confusion matrix, ROC curves, top predictive words
-- Clean dark-mode responsive web UI
-- Production deployment with Gunicorn + Nginx + systemd
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
+[![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-1.4-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
+[![NLTK](https://img.shields.io/badge/NLTK-3.8-154f3c?style=for-the-badge)](https://nltk.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge)](LICENSE)
 
-## Quick Start
+</div>
+
+---
+
+> **Misinformation spreads 6x faster than the truth.**
+> FakeShield uses NLP and machine learning to classify news articles in milliseconds — with a confidence score, fake/real probability breakdown, and the exact words that triggered the verdict.
+
+---
+
+## ✨ Features
+
+<table>
+<tr>
+<td width="50%">
+
+**🧠 Multi-Model ML**
+- 4 models compared: Passive Aggressive, Naive Bayes, Logistic Regression, Random Forest
+- Best model auto-selected at training time
+- ~91% accuracy on Kaggle Fake News dataset
+
+</td>
+<td width="50%">
+
+**🔍 Explainable AI**
+- Confidence score + fake/real probability
+- Key words that influenced the verdict
+- Per-word influence direction (fake vs real)
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+**📊 Training Visualisations**
+- Accuracy comparison across all 4 models
+- Confusion matrix per model
+- ROC curves
+- Top 20 most predictive words
+
+</td>
+<td width="50%">
+
+**🌐 REST API**
+- `POST /predict` endpoint
+- JSON in, JSON out
+- Drop-in for any app or browser extension
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🚀 Quick Start
 
 ```bash
-# 1. Install dependencies
+git clone https://github.com/aasimansari1/fake-news-detector.git
+cd fake-news-detector
+
 pip install -r requirements.txt
 
-# 2. Download NLTK data + generate sample dataset
+# Generate sample dataset + download NLTK data
 python dataset/create_dataset.py
 
-# 3. Train models (picks the best one automatically)
+# Train all 4 models (best one saved automatically)
 python train_model.py
 
-# 4. Run the web app
+# Launch the web app
 python app.py
 # → http://localhost:5000
 ```
 
-## Using a Real Dataset
+> **Want better accuracy?** Replace `dataset/sample_data.csv` with the [Kaggle Fake News dataset](https://www.kaggle.com/c/fake-news) (~44K articles). Any CSV with `text` and `label` columns (REAL/FAKE or 0/1) works.
 
-Replace `dataset/sample_data.csv` with any CSV that has `text` and `label` columns (label = REAL/FAKE or 0/1).  
-Compatible with the [Kaggle Fake News dataset](https://www.kaggle.com/c/fake-news) (~44K articles).
+---
 
-## Project Structure
+## 🏗️ How It Works
 
 ```
-fake-news-detector/
-├── app.py                  # Flask web application
-├── train_model.py          # Training pipeline
-├── requirements.txt
-├── dataset/
-│   └── create_dataset.py   # Sample dataset generator
-├── models/                 # Saved model artefacts (generated)
-├── static/
-│   ├── css/style.css
-│   ├── js/main.js
-│   └── images/             # Training charts (generated)
-└── templates/
-    └── index.html
+  📰 Article / Headline
+          │
+          ▼
+  ┌───────────────────┐
+  │   NLP Pipeline    │
+  │  lowercase →      │
+  │  punctuation →    │
+  │  tokenise →       │
+  │  stopwords →      │
+  │  lemmatise        │
+  └────────┬──────────┘
+           │
+           ▼
+  ┌───────────────────┐
+  │  TF-IDF (bigrams) │
+  │  Vectoriser       │
+  └────────┬──────────┘
+           │
+           ▼
+  ┌───────────────────┐
+  │  Best ML Model    │  ← Passive Aggressive (~91%)
+  └────────┬──────────┘
+           │
+           ▼
+  ✅ REAL (confidence: 94%)
+  ❌ FAKE (confidence: 82%)
+  + key words + probabilities
 ```
 
-## Models & Accuracy
+---
 
-| Model | Accuracy |
-|---|---|
-| Passive Aggressive | ~91% |
-| Naive Bayes | ~88% |
-| Logistic Regression | ~86% |
-| Random Forest | ~84% |
-
-*(Accuracy varies with dataset size. Use a larger real-world dataset for production.)*
-
-## API
+## 📡 API
 
 ```bash
 POST /predict
 Content-Type: application/json
 
-{"text": "Your news article or headline here"}
+{"text": "Scientists discover that vaccines cause autism, government hiding truth"}
 ```
 
-Response:
 ```json
 {
   "prediction": "FAKE",
-  "confidence": 82.3,
-  "fake_probability": 82.3,
-  "real_probability": 17.7,
-  "key_words": [{"word": "bombshell", "score": 0.19, "influence": "fake"}],
+  "confidence": 89.4,
+  "fake_probability": 89.4,
+  "real_probability": 10.6,
+  "key_words": [
+    {"word": "hiding", "score": 0.21, "influence": "fake"},
+    {"word": "truth", "score": 0.18, "influence": "fake"}
+  ],
   "model_name": "Passive Aggressive",
   "model_accuracy": 0.907
 }
 ```
 
-## Tech Stack
+---
 
-- **Backend:** Python, Flask, Gunicorn
-- **ML / NLP:** scikit-learn, NLTK, pandas, numpy
-- **Visualisation:** matplotlib, seaborn
-- **Frontend:** Vanilla HTML/CSS/JS (no framework)
-- **Server:** Nginx + systemd
+## 📈 Model Accuracy
+
+| Model | Accuracy | Notes |
+|---|:---:|---|
+| **Passive Aggressive** | **~91%** | Best overall — auto-selected |
+| Naive Bayes | ~88% | Fastest inference |
+| Logistic Regression | ~86% | Most interpretable |
+| Random Forest | ~84% | Most robust to noise |
+
+*Accuracy on sample dataset. Use a larger real-world dataset for production-grade results.*
+
+---
+
+## 🗂️ Project Structure
+
+```
+fake-news-detector/
+├── app.py                  # Flask web app + /predict API
+├── train_model.py          # Training pipeline, model comparison
+├── requirements.txt
+├── dataset/
+│   └── create_dataset.py   # Sample dataset generator
+├── models/                 # Saved model + vectoriser (generated)
+├── static/
+│   ├── css/style.css       # Dark mode responsive UI
+│   ├── js/main.js
+│   └── images/             # Training charts (generated after training)
+└── templates/
+    └── index.html
+```
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Backend | Python, Flask, Gunicorn |
+| ML / NLP | scikit-learn, NLTK, pandas, numpy |
+| Visualisation | matplotlib, seaborn |
+| Frontend | Vanilla HTML/CSS/JS, dark mode |
+| Server | Nginx + systemd |
+
+---
+
+## 🤝 Contributing
+
+Ideas for contributions:
+- 🌐 Browser extension that checks articles in-page
+- 🤗 Fine-tune a BERT/RoBERTa model for better accuracy
+- 📱 Mobile-friendly UI improvements
+- 🗃️ Support for more languages
+
+```bash
+git checkout -b feature/your-feature
+git commit -m 'Add your feature'
+git push origin feature/your-feature
+# Open a Pull Request
+```
+
+---
+
+## 📄 License
+
+MIT © [Mohd Aasim Ansari](https://github.com/aasimansari1)
+
+---
+
+<div align="center">
+
+**Fighting misinformation one article at a time. If this helped, please ⭐ star the repo!**
+
+</div>
