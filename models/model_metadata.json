@@ -17,9 +17,5 @@
   },
   "vocab_size": 2755,
   "train_samples": 172,
-  "test_samples": 43,
-  "label_counts": {
-    "FAKE": 110,
-    "REAL": 105
-  }
+  "test_samples": 43
 }
