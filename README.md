@@ -163,19 +163,46 @@ Content-Type: application/json
 
 ```
 fake-news-detector/
-├── app.py                  # Flask web app + /predict API
-├── train_model.py          # Training pipeline, model comparison
+├── app.py                        # Flask web app + /predict API
+├── train_model.py                # Training pipeline, model comparison
 ├── requirements.txt
+│
+├── src/                          # Reusable data science module
+│   ├── preprocessing.py          # Text cleaning, label normalisation, dataset loader
+│   ├── features.py               # TF-IDF vectoriser builder
+│   └── models.py                 # Train all classifiers, pick best, ROC data
+│
+├── notebooks/                    # Jupyter data science pipeline
+│   ├── 01_EDA.ipynb              # Exploratory data analysis
+│   ├── 02_Feature_Engineering.ipynb  # Preprocessing + TF-IDF
+│   ├── 03_Model_Training.ipynb   # Train & compare 4 models
+│   └── 04_Model_Evaluation.ipynb # Confusion matrix, ROC, feature importance, CV
+│
+├── data/
+│   ├── raw/                      # Source datasets (CSV)
+│   └── processed/                # Train/test splits + vectoriser (generated)
+│
+├── models/                       # Saved model + vectoriser (generated)
+├── reports/figures/              # All visualisation outputs (generated)
+│
 ├── dataset/
-│   └── create_dataset.py   # Sample dataset generator
-├── models/                 # Saved model + vectoriser (generated)
+│   └── create_dataset.py         # Sample dataset generator
 ├── static/
-│   ├── css/style.css       # Dark mode responsive UI
+│   ├── css/style.css
 │   ├── js/main.js
-│   └── images/             # Training charts (generated after training)
+│   └── images/
 └── templates/
     └── index.html
 ```
+
+### Running the Notebooks
+
+```bash
+pip install -r requirements.txt
+jupyter notebook
+```
+
+Run in order: `01_EDA` → `02_Feature_Engineering` → `03_Model_Training` → `04_Model_Evaluation`
 
 ---
 
